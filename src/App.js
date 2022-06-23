@@ -1,6 +1,6 @@
 import './App.css';
 import * as d3 from 'd3';
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 
 const data = {
     links: [
@@ -316,47 +316,54 @@ function App() {
 
     const container = useRef(null);
 
+    const [nodes, setNodes] = useState(
+        [].concat(
+            d3.range(10).map((i) => { return {id: `a${i}`, type: "a"}; }),
+            d3.range(20).map((i) => { return {id: `b${i}`, type: "b"}; }),
+            d3.range(30).map((i) => { return {id: `c${i}`, type: "c"}; }),
+            d3.range(1).map((i) => { return { id: `d${i}`, type: "d"}; })
+    )
+    );
+
+    const [width, setWidth] = useState(100);
+
+    const [height, setHeight] = useState(100);
+
+    const [links, setLinks] = useState([
+        {
+            source: 4,
+            target: 1
+        },
+        {
+            source: 5,
+            target: 2
+        },
+        {
+            source: 2,
+            target: 3
+        },
+        {
+            source: 2,
+            target: 4
+        },
+        {
+            source: 1,
+            target: 5
+        },
+        {
+            source: 1,
+            target: 6
+        },
+        {
+            source: 1,
+            target: 7
+        },
+    ]);
+
     useEffect(() => {
 
         return () => {
             const root = d3.select(container.current);
-
-            const nodes = [].concat(
-                d3.range(10).map((i) => { return {id: `a${i}`, type: "a"}; }),
-                d3.range(20).map((i) => { return {id: `b${i}`, type: "b"}; }),
-                d3.range(30).map((i) => { return {id: `c${i}`, type: "c"}; }),
-                d3.range(1).map((i) => { return { id: `d${i}`, type: "d"}; })
-            );
-
-            const links = [{
-                source: 4,
-                target: 1
-            },
-                {
-                    source: 5,
-                    target: 2
-                },
-                {
-                    source: 2,
-                    target: 3
-                },
-                {
-                    source: 2,
-                    target: 4
-                },
-                {
-                    source: 1,
-                    target: 5
-                },
-                {
-                    source: 1,
-                    target: 6
-                },
-                {
-                    source: 1,
-                    target: 7
-                },
-            ]
 
             // What happens when a circle is dragged?
             const dragstarted = (ev, d) => {
@@ -365,10 +372,12 @@ function App() {
                 d.fx = ev.x;
                 d.fy = ev.y;
             }
+
             const dragged = (ev, d) => {
                 d.fx = ev.x;
                 d.fy = ev.y;
             }
+
             const dragended = (ev, d) => {
                 // if (!d3.event.active) simulation.alphaTarget(.03);
                 d.fx = null;
@@ -394,22 +403,19 @@ function App() {
                     .attr("cy", function(d) { return d.y + 350; });
             }
 
-            var width = 100;
-            var height = 100;
-
 // A scale that gives a X target position for each group
             const x = d3.scaleOrdinal()
                 .domain([1, 2, 3, 4])
-                .range([50, 200, 340, 500])
+                .range([10, 200, 400, 500])
 
             const simulation = d3.forceSimulation(nodes)
-                .force("charge", d3.forceCollide().radius(1))
-                .force("r", d3.forceRadial(function(d) { return d.type === "d" ? 1 : d.type === "a" ? 100 : d.type === "b" ? 200 : 300; }))
-                // .force("x", d3.forceX().strength(0.5).x( function(d){ return x(d.group) } ))
-                // .force("y", d3.forceY().strength(0.1).y( height / 2 ))
-                // .force("center", d3.forceCenter().x(width / 2).y(height / 2)) // Attraction to the center of the svg area
-                // .force("charge", d3.forceManyBody().strength(1)) // Nodes are attracted one each other of value is > 0
-                // .force("collide", d3.forceCollide().strength(.1).radius(32).iterations(1)) // Force that avoids circle overlapping
+                // .force("charge", d3.forceCollide().radius(1))
+                // .force("r", d3.forceRadial(function(d) { return d.type === "d" ? 1 : d.type === "a" ? 100 : d.type === "b" ? 200 : 300; }))
+                .force("x", d3.forceX().strength(0.5).x( function(d){ return x(d.type) } ))
+                .force("y", d3.forceY().strength(0.5).y( height / 2 ))
+                .force("center", d3.forceCenter().x(width / 2).y(height / 2)) // Attraction to the center of the svg area
+                .force("charge", d3.forceManyBody().strength(1)) // Nodes are attracted one each other of value is > 0
+                .force("collide", d3.forceCollide().strength(.1).radius(15).iterations(1)) // Force that avoids circle overlapping
                 .on("tick", ticked);
         }
     }, []);

@@ -36,3 +36,8 @@
     transform: rotate(360deg);
   }
 }
+
+svg {
+  border: 1px solid rebeccapurple;
+  background: rgba(17, 227, 182, 0.26);
+}

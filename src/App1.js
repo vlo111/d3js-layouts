@@ -1,76 +1,78 @@
+import React, {Component, useEffect, useRef} from 'react';
+import * as d3 from "d3";
 import './App.css';
-import * as d3 from 'd3';
-import React, {useEffect, useRef, useState} from "react";
-import Utils from "./utils";
 
-function App() {
+function App1({nodes, links}) {
+    let svgRef = useRef();
+    let width = 960;
+    let height = 500;
+    let colors = d3.scaleOrdinal(d3.schemeCategory10);
 
-    const container = useRef(null);
+    let svg;
 
-    const [nodes, setNodes] = useState(Utils.getNodes());
-    const [links, setLinks] = useState(Utils.getLinks());
-
-    const [width, setWidth] = useState(900);
-    const [height, setHeight] = useState(700);
-
-    // const [lastNodeId, setLastNodeId] = useState(2);
-
-    // init D3 force layout
-    const force = d3.forceSimulation()
-        .force('link', d3.forceLink().id((d) => d.id).distance(150))
-        .force('charge', d3.forceManyBody().strength(-500))
-        .force('x', d3.forceX(width / 2))
-        .force('y', d3.forceY(height / 2))
-        // .on('tick', () => tick());
-
-    // init D3 drag support
-    const drag = d3.drag()
-        // Mac Firefox doesn't distinguish between left/right click when Ctrl is held...
-        .filter((event, d) => event.button === 0 || event.button === 2)
-        .on('start', (event, d) => {
-            if (!event.active) force.alphaTarget(0.3).restart();
-
-            d.fx = d.x;
-            d.fy = d.y;
-        })
-        .on('drag', (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-        })
-        .on('end', (event, d) => {
-            if (!event.active) force.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        });
-
+    let lastNodeId = 0;
+    let force;
+    let drag;
     let dragLine;
     let path;
     let circle;
-    let selectedLink;
-    let mousedownLink;
-    let selectedNode;
-    let colors = d3.scaleOrdinal(d3.schemeCategory10);
-    let mousedownNode;
-    let mouseupNode;
-    let lastKeyDown;
-    let lastNodeId = 0;
 
-    const resetMouseVars = () => {
-        mousedownNode = null;
-        mouseupNode = null;
-        mousedownLink = null;
-    }
+    // mouse event vars
+    let selectedNode = null;
+    let selectedLink = null;
+    let mousedownLink = null;
+    let mousedownNode = null;
+    let mouseupNode = null;
+
+    // only respond once per keydown
+    let lastKeyDown = -1;
 
     useEffect(() => {
-
         return () => {
-            const root = d3.select(container.current);
+            svg = d3.select(svgRef.current)
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .on('contextmenu', (event, d) => { event.preventDefault(); })
 
-            root.attr("width", width)
-                .attr("height",height)
-                .on('contextmenu', (event, d) => event.preventDefault());
+            // set up initial nodes and links
+            //  - nodes are known by 'id', not by index in array.
+            //  - reflexive edges are indicated on the node (as a bold black circle).
+            //  - links are always source < target; edge directions are set by 'left' and 'right'.
 
-            root.append('svg:defs').append('svg:marker')
+            lastNodeId = 2;
+
+            // init D3 force layout
+            force = d3.forceSimulation()
+                .force('link', d3.forceLink().id((d) => d.id).distance(150))
+                .force('charge', d3.forceManyBody().strength(-500))
+                .force('x', d3.forceX(width / 2))
+                .force('y', d3.forceY(height / 2))
+                .on('tick', () => tick());
+
+            // init D3 drag support
+            drag = d3.drag()
+                // Mac Firefox doesn't distinguish between left/right click when Ctrl is held...
+                .filter((event, d) => event.button === 0 || event.button === 2)
+                .on('start', (event, d) => {
+                    if (!event.active) force.alphaTarget(0.3).restart();
+
+                    d.fx = d.x;
+                    d.fy = d.y;
+                })
+                .on('drag', (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                })
+                .on('end', (event, d) => {
+                    if (!event.active) force.alphaTarget(0);
+
+                    d.fx = null;
+                    d.fy = null;
+                });
+
+            // define arrow markers for graph links
+            svg.append('svg:defs').append('svg:marker')
                 .attr('id', 'end-arrow')
                 .attr('viewBox', '0 -5 10 10')
                 .attr('refX', 6)
@@ -81,7 +83,7 @@ function App() {
                 .attr('d', 'M0,-5L10,0L0,5')
                 .attr('fill', '#000');
 
-            root.append('svg:defs').append('svg:marker')
+            svg.append('svg:defs').append('svg:marker')
                 .attr('id', 'start-arrow')
                 .attr('viewBox', '0 -5 10 10')
                 .attr('refX', 4)
@@ -92,16 +94,17 @@ function App() {
                 .attr('d', 'M10,-5L0,0L10,5')
                 .attr('fill', '#000');
 
-            dragLine = root.append('svg:path')
+            // line displayed when dragging new nodes
+            dragLine = svg.append('svg:path')
                 .attr('class', 'link dragline hidden')
                 .attr('d', 'M0,0L0,0');
 
             // handles to link and node element groups
-            path = d3.select(container.current).append('svg:g').selectAll('path');
-            circle = d3.select(container.current).append('svg:g').selectAll('g');
+            path = svg.append('svg:g').selectAll('path');
+            circle = svg.append('svg:g').selectAll('g');
 
             // app starts here
-            root.on('mousedown', (event, d) => mousedown(event, d))
+            svg.on('mousedown', (event, d) => mousedown(event, d))
                 .on('mousemove', (event, d) => mousemove(event, d))
                 .on('mouseup', (event, d) => mouseup(event, d));
 
@@ -109,11 +112,39 @@ function App() {
                 .on('keydown', (event, d) => keydown(event, d))
                 .on('keyup', (event, d) => keyup(event, d));
 
-            restart()
+            restart();
         }
-    }, []);
+    }, [])
 
-       // update graph (called when needed)
+    const resetMouseVars = () => {
+        mousedownNode = null;
+        mouseupNode = null;
+        mousedownLink = null;
+    }
+
+    // update force layout (called automatically each iteration)
+    const tick = () => {
+        // draw directed edges with proper padding from node centers
+        path.attr('d', (d) => {
+            const deltaX = d.target.x - d.source.x;
+            const deltaY = d.target.y - d.source.y;
+            const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const normX = deltaX / dist;
+            const normY = deltaY / dist;
+            const sourcePadding = d.left ? 27 : 22;
+            const targetPadding = d.right ? 27 : 22;
+            const sourceX = d.source.x + (sourcePadding * normX);
+            const sourceY = d.source.y + (sourcePadding * normY);
+            const targetX = d.target.x - (targetPadding * normX);
+            const targetY = d.target.y - (targetPadding * normY);
+
+            return `M${sourceX},${sourceY}L${targetX},${targetY}`;
+        });
+
+        circle.attr('transform', (d) => `translate(${d.x},${d.y})`);
+    }
+
+    // update graph (called when needed)
     const restart = () => {
         // path (link) group
         path = path.data(links);
@@ -244,9 +275,11 @@ function App() {
         force.alphaTarget(0.3).restart();
     }
 
+    //# region  EVENTS
+
     const mousedown = (event, d) => {
         // because :active only works in WebKit?
-        d3.select(container.current).classed('active', event.currentTarget);
+        svg.classed('active', event.currentTarget);
 
         if (event.ctrlKey || mousedownNode || mousedownLink) return;
 
@@ -273,17 +306,10 @@ function App() {
         }
 
         // because :active only works in WebKit?
-        d3.select(container.current).classed('active', false);
+        svg.classed('active', false);
 
         // clear mouse event vars
         resetMouseVars();
-    }
-
-    const spliceLinksForNode = (node) => {
-        const toSplice = links.filter((l) => l.source === node || l.target === node);
-        for (const l of toSplice) {
-            links.splice(links.indexOf(l), 1);
-        }
     }
 
     const keydown = (event, d) => {
@@ -295,7 +321,7 @@ function App() {
         // ctrl
         if (event.keyCode === 17) {
             circle.call(drag);
-            d3.select(container.current).classed('ctrl', event.currentTarget);
+            svg.classed('ctrl', event.currentTarget);
             return;
         }
 
@@ -350,18 +376,21 @@ function App() {
         // ctrl
         if (event.keyCode === 17) {
             circle.on('.drag', null);
-            d3.select(container.current).classed('ctrl', false);
+            svg.classed('ctrl', false);
+        }
+    }
+    //# endregion
+
+    const spliceLinksForNode = (node) => {
+        const toSplice = links.filter((l) => l.source === node || l.target === node);
+        for (const l of toSplice) {
+            links.splice(links.indexOf(l), 1);
         }
     }
 
-
     return (
-    <div className="App">
-        <svg
-            ref={container}
-        />
-    </div>
-  );
+        <div ref={svgRef}> </div>
+    )
 }
 
-export default App;
+export default App1;

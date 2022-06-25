@@ -3,14 +3,17 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App1';
 import reportWebVitals from './reportWebVitals';
+import * as d3 from "d3";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-const nodes = [
-    { id: 0, reflexive: false },
-    { id: 1, reflexive: true },
-    { id: 2, reflexive: false }
-];
+const nodes =
+    [].concat(
+        d3.range(10).map((i) => { return {id: `a${i}`, type: "a", reflexive: false}; }),
+        d3.range(20).map((i) => { return {id: `b${i}`, type: "b", reflexive: false}; }),
+        d3.range(30).map((i) => { return {id: `c${i}`, type: "c", reflexive: true }; }),
+        d3.range(1).map((i) => { return { id: `d${i}`, type: "d", reflexive: false}; })
+    );
 
 const links = [
     { source: nodes[0], target: nodes[1], left: false, right: true },

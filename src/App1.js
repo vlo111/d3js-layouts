@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import './App.css';
 
 function App1({nodes, links}) {
+
     let svgRef = useRef();
     let width = window.innerWidth - 50;
     let height = window.innerHeight - 50;
@@ -274,6 +275,7 @@ function App1({nodes, links}) {
 
         force.alphaTarget(0.3).restart();
     }
+
 
     //# region  EVENTS
 

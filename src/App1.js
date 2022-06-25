@@ -45,8 +45,8 @@ function App1({nodes, links}) {
 
             // init D3 force layout
             force = d3.forceSimulation()
-                .force('link', d3.forceLink().id((d) => d.id).distance(150))
-                .force('charge', d3.forceManyBody().strength(-500))
+                .force('link', d3.forceLink().id((d) => d.id).distance(200))
+                .force('charge', d3.forceManyBody().strength(-900))
                 .force('x', d3.forceX(width / 2))
                 .force('y', d3.forceY(height / 2))
                 .on('tick', () => tick());
@@ -132,8 +132,8 @@ function App1({nodes, links}) {
             const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
             const normX = deltaX / dist;
             const normY = deltaY / dist;
-            const sourcePadding = d.left ? 27 : 22;
-            const targetPadding = d.right ? 27 : 22;
+            const sourcePadding = d.left ? 48 : 44;
+            const targetPadding = d.right ? 48 : 44;
             const sourceX = d.source.x + (sourcePadding * normX);
             const sourceY = d.source.y + (sourcePadding * normY);
             const targetX = d.target.x - (targetPadding * normX);
@@ -192,9 +192,10 @@ function App1({nodes, links}) {
 
         g.append('svg:circle')
             .attr('class', 'node')
-            .attr('r', 20)
+            .attr('r', 40)
             .style('fill', (d) => (d === selectedNode) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id))
             .style('stroke', (d) => d3.rgb(colors(d.id)).darker().toString())
+            .style('stroke-width', "5px")
             .classed('reflexive', (d) => d.reflexive)
             .on('mouseover', (event, d) => {
                 if (!mousedownNode || d === mousedownNode) return;

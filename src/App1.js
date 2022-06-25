@@ -174,19 +174,12 @@ function App1({nodes, links}) {
                 //     });
 
                 path.attr('d', (d) => {
-                    const deltaX = d.target.x - d.source.x;
-                    const deltaY = d.target.y - d.source.y;
-                    const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                    const normX = deltaX / dist;
-                    const normY = deltaY / dist;
-                    const sourcePadding = d.left ? 48 : 44;
-                    const targetPadding = d.right ? 48 : 44;
-                    const sourceX = d.source.x + (sourcePadding * normX);
-                    const sourceY = d.source.y + (sourcePadding * normY);
-                    const targetX = d.target.x - (targetPadding * normX);
-                    const targetY = d.target.y - (targetPadding * normY);
 
-                    return `M${sourceX},${sourceY}L${targetX},${targetY}`;
+                    var dx = d.target.x - d.source.x,
+                        dy = d.target.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy);
+
+                    return 'M' + d.source.x + ',' + d.source.y + 'A' + (dr - 180) + ',' + (dr - 180) + ' 0 0,1 ' + d.target.x + ',' + d.target.y;
                 });
             })
         }

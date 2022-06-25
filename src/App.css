@@ -37,13 +37,6 @@
   }
 }
 
-svg {
-  margin-top: 20px;
-  background: #eee;
-  border: 1px solid red;
-}
-
-
 
 
 
@@ -113,9 +106,4 @@ text {
 text.id {
   text-anchor: middle;
   font-weight: bold;
-}
-
-svg {
-  border: 1px solid rebeccapurple;
-  background: rgba(17, 227, 182, 0.26);
 }

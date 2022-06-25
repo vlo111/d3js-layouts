@@ -97,6 +97,9 @@ function App1({nodes, links}) {
                 .attr('d', 'M10,-5L0,0L10,5')
                 .attr('fill', '#000');
 
+            // Labels
+            const convexHull = svg.append('g').attr('class', 'hull');
+
             // line displayed when dragging new nodes
             dragLine = svg.append('svg:path')
                 .attr('class', 'link dragline hidden')
@@ -134,8 +137,6 @@ function App1({nodes, links}) {
                 }
             };
 
-            const convexHull = svg.append('g').attr('class', 'hull');
-
             let inpos = [], counterX = 1, inposY = [], counterY = 1;
 
             force.nodes(nodes).on('tick', () => {
@@ -156,6 +157,7 @@ function App1({nodes, links}) {
                 circle.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
                 .attr('x', function (node) { console.log(node); return node.x })
                 .attr('y', function (node) { return node.y })
+
                 // textElements
                 //     .attr('x', function (node) { return node.x })
                 //     .attr('y', function (node) { return node.y })
@@ -170,6 +172,7 @@ function App1({nodes, links}) {
                 //         if (d.type == 'resource') return val2;
                 //         else return val;
                 //     });
+
                 path.attr('d', (d) => {
                     const deltaX = d.target.x - d.source.x;
                     const deltaY = d.target.y - d.source.y;
@@ -186,7 +189,6 @@ function App1({nodes, links}) {
                     return `M${sourceX},${sourceY}L${targetX},${targetY}`;
                 });
             })
-            debugger;
         }
     }, [])
 

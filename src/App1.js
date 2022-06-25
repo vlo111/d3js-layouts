@@ -1,11 +1,11 @@
-import React, {Component, useEffect, useRef} from 'react';
+import React, {Component, useEffect, useRef, useState} from 'react';
 import * as d3 from "d3";
 import './App.css';
 
 function App1({nodes, links}) {
     let svgRef = useRef();
-    let width = 960;
-    let height = 500;
+    let width = window.innerWidth - 50;
+    let height = window.innerHeight - 50;
     let colors = d3.scaleOrdinal(d3.schemeCategory10);
 
     let svg;

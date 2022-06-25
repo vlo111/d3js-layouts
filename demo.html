@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>D3v4 hull</title>
+    <!-- d3.js framework
+    <script src="https://d3js.org/d3.v4.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.7.0/d3.min.js"></script>
+    <!-- d3.js Scale Chromatic plugin -->
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+    <style>
+        html,
+        body,
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        path.link {
+            fill: none;
+            stroke: #666;
+            stroke-width: 1.5px;
+            opacity: 0.8;
+        }
+
+        marker#resource {
+            fill: red;
+        }
+
+        path.link.resource {
+            /* stroke: green; */
+        }
+
+        path.link.property {
+            stroke-dasharray: 0, 2 1;
+        }
+
+        circle {
+            opacity: 1;
+            stroke: #333;
+            stroke-width: 1.5px;
+        }
+
+        text {
+            font: 10px sans-serif;
+            pointer-events: none;
+        }
+
+        text.shadow {
+            stroke: #fff;
+            stroke-width: 3px;
+            stroke-opacity: .8;
+        }
+
+        .nodes {
+            opacity: 1;
+        }
+
+    </style>
+
+<body>
+<div id="canvas"></div>
+
+<script type="text/javascript">
+    var data = {
+        'nodes': [{
+            'id': 'A',
+            'label': 'A',
+            'type': 'resource',
+            'size': 40,
+            'group': 'a',
+        }, {
+            'id': 'B',
+            'label': 'B',
+            'type': 'resource',
+            'size': 40,
+            'group': 'a'
+        }, {
+            'id': 'C',
+            'label': 'C',
+            'type': 'resource',
+            'size': 40,
+            'group': 'x',
+        }, {
+            'id': 'D',
+            'label': 'D',
+            'type': 'resource',
+            'size': 40,
+            'group': 'x'
+        }, {
+            'id': 'E',
+            'label': 'E',
+            'type': 'resource',
+            'size': 40,
+            'group': 'x'
+        }, {
+            'id': 'F',
+            'label': 'F',
+            'type': 'resource',
+            'size': 40,
+            'group': 'a'
+        }, {
+            'id': 'Q',
+            'label': 'Q',
+            'type': 'resource',
+            'size': 40,
+            'group': 'q'
+        }, {
+            'id': 'W',
+            'label': 'Wjk',
+            'type': 'resource',
+            'size': 40,
+            'group': 'q'
+        }, {
+            'id': 'Z',
+            'label': 'Z',
+            'type': 'resource',
+            'size': 40,
+            'group': 'q'
+        }],
+        'links': [{
+            'source': 'E',
+            'target': 'F',
+            'type': 'resource',
+            'distance': 100,
+            'strength': 1
+        }, {
+            'source': 'A',
+            'target': 'F',
+            'type': 'resource',
+            'distance': 100,
+            'strength': 1
+        }, {
+            'source': 'A',
+            'target': 'C',
+            'type': 'resource',
+            'distance': 100,
+            'strength': 1
+        }, {
+            'source': 'Q',
+            'target': 'F',
+            'type': 'resource',
+            'distance': 100,
+            'strength': 1
+        }, {
+            'source': 'Q',
+            'target': 'E',
+            'type': 'resource',
+            'distance': 100,
+            'strength': 1
+        }, {
+            'source': 'W',
+            'target': 'Q',
+            'type': 'resource',
+            'distance': 100,
+            'strength': 1
+        }]
+    };
+
+    var canvas = document.getElementById('canvas');
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    var color = d3.scaleOrdinal(d3.schemeSet3);
+    var svg = d3.select(canvas).append('svg')
+        .attr('width', w)
+        .attr('height', h);
+    var rectWidth = 80,
+        rectHeight = 30;
+    var markerWidth = 10,
+        markerHeight = 6,
+        cRadius = 180, // play with the cRadius value
+        refX = 70, //refX = cRadius + markerWidth,
+        refY = 0, //refY = -Math.sqrt(cRadius),
+        drSub = cRadius + refY;
+
+    var tocolor = "fill";
+    var towhite = "stroke";
+    if (outline) {
+        tocolor = "stroke"
+        towhite = "fill"
+    }
+
+    var focus_node = null, highlight_node = null;
+
+    var highlight_color = "blue";
+    var highlight_trans = 0.1;
+    var outline = false;
+    var default_node_color = "#ccc";
+    //var default_node_color = "rgb(3,190,100)";
+    var default_link_color = "#888";
+
+    var g = svg.append("g")
+        .attr("class", "viz");
+    var net, convexHull, genCH, linkElements, nodeElements, textElements, circle, simulation, linkForce;
+
+    var expand = {};
+
+    var linkedByIndex = {};
+    data.links.forEach(function (d) {
+        linkedByIndex[d.source + "," + d.target] = true;
+    });
+    function isConnected(a, b) {
+        return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
+    }
+
+
+    var groupFill = function (d, i) { return color(d.key); };
+
+    function getGroup(n) { return n.group; }
+
+    function network(data, prev, cekGroup, expand) {
+        var cnode, groupIndex, mappedNodes = [], mappedLinks = [], clink, tempN, tempL = [], newNodes = [], soIn, taIn, lw = 0, newLinks = [];
+        if (Object.getOwnPropertyNames(expand).length == 0) {
+            for (var j = 0; j < data.nodes.length; j++) {
+                groupIndex = cekGroup(data.nodes[j]);
+                expand[groupIndex] = true;
+            }
+            nodes = data.nodes;
+            links = data.links;
+        } else {
+            for (var k = 0; k < data.nodes.length; k++) {
+                cnode = data.nodes[k];
+                groupIndex = cekGroup(cnode);
+                if (expand[groupIndex]) {
+                    mappedNodes.push(cnode);
+                    //if expand true, nodes condition expand
+                } else {
+                    if (!newNodes[groupIndex]) {
+                        tempN = {
+                            'id': groupIndex,
+                            'label': 'domain ' + groupIndex,
+                            'type': 'resource',
+                            'size': 30,
+                            'group': groupIndex
+                        };
+                        newNodes[groupIndex] = tempN;
+                        mappedNodes.push(tempN);
+                    }
+                    // if expand false, nodes condition collapse
+                }
+                //iterate through all data.nodes
+            }
+
+
+            for (var x = 0; x < data.links.length; x++) {
+                clink = data.links[x];
+                soIn = cekGroup(clink.source);
+                taIn = cekGroup(clink.target);
+                tempL = {};
+                // if(!expand[soIn] && expand[taIn]) {
+                //   tempL.source = newNodes[soIn];
+                // }
+
+                if (expand[soIn] && expand[taIn]) {
+                    //console.log('if1');
+                    //tempL=clink;
+                    soIn = clink.source.id;
+                    taIn = clink.target.id;
+                } else if (!expand[soIn] && expand[taIn]) {
+                    //console.log('if2');
+                    //tempL.source = newNodes[soIn];
+                    soIn = soIn;
+                    taIn = clink.target.id;
+                } else if (expand[soIn] && !expand[taIn]) {
+                    //console.log('if3');
+                    //tempL.target = newNodes[taIn];
+                    taIn = taIn;
+                    soIn = clink.source.id;
+                } else if (!expand[soIn] && !expand[taIn]) {
+                    //console.log('if4');
+                    //tempL=null;
+                    if (soIn == taIn) { soIn = ''; taIn = ''; }
+                }
+                if (soIn != '' && taIn != '') {
+                    tempL = {
+                        'source': soIn,
+                        'target': taIn,
+                        'type': clink.type,
+                        'distance': 50,
+                        'strength': 1
+                    }
+                    mappedLinks.push(tempL);
+                }
+            }
+            nodes = mappedNodes;
+            links = mappedLinks;
+            // endof if expand not empty
+        }
+
+        return { nodes: nodes, links: links };
+    }
+
+    var offset = 0, groups, groupPath;
+    function init() {
+        if (simulation) {
+            linkElements.remove();
+            nodeElements.remove();
+            genCH.remove();
+            convexHull.remove();
+            textElements.remove();
+        }
+        net = network(data, net, getGroup, expand);
+        //groups = d3.nest().key(function (d) { return d.group; }).entries(net.nodes);
+        groups = d3.groups(net.nodes, d => d.group).map(x => ({key: x[0], values: x[1]}));
+        //console.log(groups)
+
+        groupPath = function (d) {
+            var txt;
+            if (d.values.length == 1) {
+                return "M0,0L0,0L0,0Z";
+            } else {
+                return "M" +
+                    d3.polygonHull(d.values.map(function (i) { return [i.x + offset, i.y + offset]; }))
+                        .join("L")
+                    + "Z";
+            }
+        };
+        convexHull = g.append('g').attr('class', 'hull');
+        // simulation setup with all forces
+        linkForce = d3
+            .forceLink()
+            .id(function (link) { return link.id })
+            .strength(function (link) { return 0.2 })
+
+        var inpos = [], counterX = 1, inposY = [], counterY = 1;
+
+        simulation = d3
+            .forceSimulation()
+            .force('link', d3.forceLink().id(function (d) {
+                return d.id;
+            }).distance(150))
+            .force('forceX', d3.forceX(function (d) {
+                if (inpos[d.group]) {
+
+                    return inpos[d.group];
+                } else {
+                    inpos[d.group] = w / counterX;
+
+                    counterX++;
+                    return inpos[d.group];
+                }
+            }))
+            .force('forceY', d3.forceY(function (d) {
+                if (inposY[d.group]) {
+
+                    return inposY[d.group];
+                } else {
+                    inposY[d.group] = h / (Math.random() * (d.group.length - 0 + 1) + 1);
+
+                    return inposY[d.group];
+                }
+            }))
+            .force('charge', d3.forceManyBody().strength(-500))
+            .force('center', d3.forceCenter(w / 2, h / 2))
+            .force("gravity", d3.forceManyBody(50));
+
+        linkElements = g.append('g').attr('class', 'links').selectAll('path').data(net.links).enter().append('path')
+            .attr('class', function (d) { return 'link ' + d.type; })
+
+        nodeElements = g.append('g').attr('class', 'nodes').selectAll('.node')
+            .data(net.nodes)
+            .enter().append('g')
+            .attr('class', 'node');
+        // .append('circle')
+        // .attr("r", cRadius)
+        // .attr("fill", function(d){ return color(d.group);});
+        circle = nodeElements.filter(function (d) { return d.type == 'resource'; }).append('circle')
+            .attr('class', 'circle')
+            .attr("r", function (d) { return d.size; })
+            .attr("fill", function (d) { return color(d.group); });
+
+        nodeElements.call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+        textElements = g.append("g")
+            .attr("class", "texts")
+            .selectAll("text")
+            .data(net.nodes)
+            .enter().append('text')
+            .attr('text-anchor', 'middle')
+            .attr('alignment-baseline', 'middle')
+            .append('tspan')
+            .text(function (node) { return node.label });
+
+        simulation.nodes(net.nodes).on('tick', () => {
+            genCH = convexHull.selectAll("path")
+                .data(groups)
+                .attr("d", groupPath)
+                .enter().insert("path", "circle")
+                .style("fill", groupFill)
+                .style("stroke", groupFill)
+                .style("stroke-width", 140)
+                .style("stroke-linejoin", "round")
+                .style("opacity", .5)
+                .on('click', function (evt, d) {
+                    expand[d.key] = false;
+                    init();
+                })
+                .attr("d", groupPath);
+
+            nodeElements
+                .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+            // .attr('x', function (node) { console.log(node); return node.x })
+            // .attr('y', function (node) { return node.y })
+            textElements
+                .attr('x', function (node) { return node.x })
+                .attr('y', function (node) { return node.y })
+            linkElements
+                .attr('d', function (d) {
+                    var dx = d.target.x - d.source.x,
+                        dy = d.target.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy);
+
+
+                    var val = 'M' + d.source.x + ',' + d.source.y + 'A' + (dr - drSub) + ',' + (dr - drSub) + ' 0 0,1 ' + d.target.x + ',' + d.target.y;
+
+                    var val2 = 'M' + d.source.x + ',' + d.source.y + 'L' + (d.target.x) + ',' + (d.target.y);
+                    if (d.type == 'resource') return val2;
+                    else return val1;
+                });
+        })
+
+        nodeElements.on("mouseover", function (d) {
+            set_highlight(d);
+        })
+            .on("mousedown", function (event, d) {
+                event.stopPropagation();
+                focus_node = d;
+
+                set_focus(d)
+                if (highlight_node === null) set_highlight(d)
+
+            }).on("mouseout", function (event, d) {
+            exit_highlight();
+
+        }).on("click", function (event, d) {
+            event.stopPropagation();
+
+            setExpand(d);
+        });
+
+        simulation.force("link").links(net.links).distance(function (d) {
+            if (d.source.group == d.target.group) return 85;
+            else return 180;
+            // if(d.type=='resource') return 300;
+            // else return 150;
+            // return d.distance;
+        });
+
+        function setExpand(d) {
+            expand[d.id] = !expand[d.id];
+            init();
+        }
+
+        function exit_highlight() {
+            highlight_node = null;
+            if (focus_node === null) {
+                svg.style("cursor", "move");
+                if (highlight_color != "white") {
+                    circle.style(towhite, "white");
+                    linkElements.style("stroke", function (o) { return (isNumber(o.score) && o.score >= 0) ? color(o.score) : default_link_color });
+                }
+
+            }
+        }
+
+        function set_focus(d) {
+            if (highlight_trans < 1) {
+                circle.style("opacity", function (o) {
+                    return isConnected(d, o) ? 1 : highlight_trans;
+                });
+
+                linkElements.style("opacity", function (o) {
+                    return o.source.index == d.index || o.target.index == d.index ? 1 : highlight_trans;
+                });
+            }
+        }
+
+        function set_highlight(d) {
+
+            svg.style("cursor", "pointer");
+            // circle.style('opacity',0.7);
+            if (focus_node !== null) d = focus_node;
+            highlight_node = d;
+
+            if (highlight_color != "white") {
+                circle.style(towhite, function (o) {
+                    return isConnected(d, o) ? highlight_color : "white";
+                });
+                //             linkElements.style("stroke", function(o) {
+                //            return o.source.index == d.index || o.target.index == d.index ? highlight_color : ((isNumber(o.score) && o.score>=0)?color(o.score):default_link_color);
+                // });
+            }
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+        // endof init()
+    }
+
+    init();
+    //add zoom capabilities
+    var zoom_handler = d3.zoom()
+        .on("zoom", zoom_actions);
+
+    zoom_handler(svg);
+    function zoom_actions(event) {
+        g.attr("transform", event.transform);
+    }
+
+    function isNumber(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    }
+</script>
+
+</body>
+
+</html>

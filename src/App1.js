@@ -103,8 +103,8 @@ function App1({nodes, links}) {
                 .attr('d', 'M0,0L0,0');
 
             // handles to link and node element groups
-            path = svg.append('svg:g').selectAll('path');
-            circle = svg.append('svg:g').selectAll('g');
+            path = svg.append('svg:g').attr('class', 'links').selectAll('path');
+            circle = svg.append('svg:g').attr('class', 'nodes').selectAll('g');
 
             // app starts here
             svg.on('mousedown', (event, d) => mousedown(event, d))
@@ -116,6 +116,77 @@ function App1({nodes, links}) {
                 .on('keyup', (event, d) => keyup(event, d));
 
             restart();
+
+            const groups = d3.groups(nodes, d => d.type).map(x => ({key: x[0], values: x[1]}));
+
+            const offset = 0;
+            let genCH;
+
+            const groupPath = function (d) {
+                const txt = '';
+                if (d.values.length == 1) {
+                    return "M0,0L0,0L0,0Z";
+                } else {
+                    return "M" +
+                        d3.polygonHull(d.values.map(function (i) { return [i.x + offset, i.y + offset]; }))
+                            .join("L")
+                        + "Z";
+                }
+            };
+
+            const convexHull = svg.append('g').attr('class', 'hull');
+
+            let inpos = [], counterX = 1, inposY = [], counterY = 1;
+
+            force.nodes(nodes).on('tick', () => {
+                genCH = convexHull.selectAll("path")
+                    .data(groups)
+                    .attr("d", groupPath)
+                    .enter().insert("path", "circle")
+                    .style("fill", (d) => d3.rgb(colors(d.id)))
+                    .style("stroke", (d) => d3.rgb(colors(d.id)).brighter().toString())
+                    .style("stroke-width", 140)
+                    .style("stroke-linejoin", "round")
+                    .style("opacity", .5)
+                    .on('click', function (evt, d) {
+                        // expand[d.key] = false;
+                        // init();
+                    }).attr("d", groupPath);
+
+                circle.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+                .attr('x', function (node) { console.log(node); return node.x })
+                .attr('y', function (node) { return node.y })
+                // textElements
+                //     .attr('x', function (node) { return node.x })
+                //     .attr('y', function (node) { return node.y })
+                // path.attr('d', function (d) {
+                //         var dx = d.target.x - d.source.x,
+                //             dy = d.target.y - d.source.y,
+                //             dr = Math.sqrt(dx * dx + dy * dy);
+                //
+                //         var val = 'M' + d.source.x + ',' + d.source.y + 'A' + (dr - 180) + ',' + (dr - 180) + ' 0 0,1 ' + d.target.x + ',' + d.target.y;
+                //
+                //         var val2 = 'M' + d.source.x + ',' + d.source.y + 'L' + (d.target.x) + ',' + (d.target.y);
+                //         if (d.type == 'resource') return val2;
+                //         else return val;
+                //     });
+                path.attr('d', (d) => {
+                    const deltaX = d.target.x - d.source.x;
+                    const deltaY = d.target.y - d.source.y;
+                    const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    const normX = deltaX / dist;
+                    const normY = deltaY / dist;
+                    const sourcePadding = d.left ? 48 : 44;
+                    const targetPadding = d.right ? 48 : 44;
+                    const sourceX = d.source.x + (sourcePadding * normX);
+                    const sourceY = d.source.y + (sourcePadding * normY);
+                    const targetX = d.target.x - (targetPadding * normX);
+                    const targetY = d.target.y - (targetPadding * normY);
+
+                    return `M${sourceX},${sourceY}L${targetX},${targetY}`;
+                });
+            })
+            debugger;
         }
     }, [])
 

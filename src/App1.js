@@ -49,6 +49,8 @@ function App1({nodes, links}) {
                 .force('charge', d3.forceManyBody().strength(-900))
                 .force('x', d3.forceX(width / 2))
                 .force('y', d3.forceY(height / 2))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force("gravity", d3.forceManyBody(50))
                 .on('tick', () => tick());
 
             // init D3 drag support

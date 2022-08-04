@@ -9,10 +9,10 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 const nodes =
     [].concat(
-        d3.range(10).map((i) => { return {id: `a${i}`, type: "a", reflexive: false}; }),
-        d3.range(10).map((i) => { return {id: `b${i}`, type: "b", reflexive: false}; }),
-        d3.range(10).map((i) => { return {id: `c${i}`, type: "c", reflexive: false }; }),
-        d3.range(1).map((i) => { return { id: `d${i}`, type: "d", reflexive: true}; })
+        d3.range(10).map((i) => { return {id: `Name a${i}`, type: "a", reflexive: false}; }),
+        d3.range(10).map((i) => { return {id: `Name b${i}`, type: "b", reflexive: false}; }),
+        d3.range(10).map((i) => { return {id: `Name c${i}`, type: "c", reflexive: false }; }),
+        d3.range(1).map((i) => { return { id: `Name d${i}`, type: "d", reflexive: true}; })
     );
 
 const links = [

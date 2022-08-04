@@ -197,6 +197,8 @@ function App1({nodes, links}) {
             .attr('r', 40)
             .style('fill', (d) => (d === selectedNode) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id))
             .style('stroke', (d) => d3.rgb(colors(d.id)).darker().toString())
+            .style('stroke-opacity', "0.2")
+            .style('filter', "drop-shadow(12px 12px 7px rgba(0,0,0,0.5))")
             .style('stroke-width', "5px")
             .classed('reflexive', (d) => d.reflexive)
             .on('mouseover', (event, d) => {

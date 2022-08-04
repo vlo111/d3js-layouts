@@ -5,25 +5,27 @@ import './App.css';
 function App1({nodes, links}) {
 
     let svgRef = useRef();
+
+    //#region chart fields
     let width = window.innerWidth - 50;
     let height = window.innerHeight - 50;
     let colors = d3.scaleOrdinal(d3.schemeCategory10);
-
     let svg;
-
     let lastNodeId = 0;
     let force;
     let drag;
     let dragLine;
     let path;
     let circle;
+    //#endregion
 
-    // mouse event vars
+    //#region event fields
     let selectedNode = null;
     let selectedLink = null;
     let mousedownLink = null;
     let mousedownNode = null;
     let mouseupNode = null;
+    //#endregion
 
     // only respond once per keydown
     let lastKeyDown = -1;
@@ -45,7 +47,7 @@ function App1({nodes, links}) {
 
             // init D3 force layout
             force = d3.forceSimulation()
-                .force('link', d3.forceLink().id((d) => d.id).distance(200))
+                .force('link', d3.forceLink().id((d) => d.id).distance(400))
                 .force('charge', d3.forceManyBody().strength(-900))
                 .force('x', d3.forceX(width / 2))
                 .force('y', d3.forceY(height / 2))
@@ -280,7 +282,6 @@ function App1({nodes, links}) {
 
         force.alphaTarget(0.3).restart();
     }
-
 
     //# region  EVENTS
 

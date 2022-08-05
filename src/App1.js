@@ -6,6 +6,8 @@ function App1({nodes, links}) {
 
     let svgRef = useRef();
 
+    const [animatedNodes, setAnimatedNodes] = useState([]);
+
     //#region chart fields
     let width = window.innerWidth - 50;
     let height = window.innerHeight - 50;
@@ -32,94 +34,11 @@ function App1({nodes, links}) {
 
     useEffect(() => {
         return () => {
-            svg = d3.select(svgRef.current)
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .on('contextmenu', (event, d) => { event.preventDefault(); })
+            initChart();
 
-            // set up initial nodes and links
-            //  - nodes are known by 'id', not by index in array.
-            //  - reflexive edges are indicated on the node (as a bold black circle).
-            //  - links are always source < target; edge directions are set by 'left' and 'right'.
-
-            lastNodeId = 2;
-
-            // init D3 force layout
-            force = d3.forceSimulation()
-                .force('link', d3.forceLink().id((d) => d.id).distance(400))
-                .force('charge', d3.forceManyBody().strength(-900))
-                .force('x', d3.forceX(width / 2))
-                .force('y', d3.forceY(height / 2))
-                //.force('center', d3.forceCenter(width / 2, height / 2))
-                .force("gravity", d3.forceManyBody(50))
-                .on('tick', () => tick());
-
-            // init D3 drag support
-            drag = d3.drag()
-                // Mac Firefox doesn't distinguish between left/right click when Ctrl is held...
-                .filter((event, d) => event.button === 0 || event.button === 2)
-                .on('start', (event, d) => {
-                    if (!event.active) force.alphaTarget(0.3).restart();
-
-                    d.fx = d.x;
-                    d.fy = d.y;
-                })
-                .on('drag', (event, d) => {
-                    d.fx = event.x;
-                    d.fy = event.y;
-                })
-                .on('end', (event, d) => {
-                    if (!event.active) force.alphaTarget(0);
-
-                    d.fx = null;
-                    d.fy = null;
-                });
-
-            // define arrow markers for graph links
-            svg.append('svg:defs').append('svg:marker')
-                .attr('id', 'end-arrow')
-                .attr('viewBox', '0 -5 10 10')
-                .attr('refX', 6)
-                .attr('markerWidth', 3)
-                .attr('markerHeight', 3)
-                .attr('orient', 'auto')
-                .append('svg:path')
-                .attr('d', 'M0,-5L10,0L0,5')
-                .attr('fill', '#000');
-
-            svg.append('svg:defs').append('svg:marker')
-                .attr('id', 'start-arrow')
-                .attr('viewBox', '0 -5 10 10')
-                .attr('refX', 4)
-                .attr('markerWidth', 3)
-                .attr('markerHeight', 3)
-                .attr('orient', 'auto')
-                .append('svg:path')
-                .attr('d', 'M10,-5L0,0L10,5')
-                .attr('fill', '#000');
-
-            // line displayed when dragging new nodes
-            dragLine = svg.append('svg:path')
-                .attr('class', 'link dragline hidden')
-                .attr('d', 'M0,0L0,0');
-
-            // handles to link and node element groups
-            path = svg.append('svg:g').selectAll('path');
-            circle = svg.append('svg:g').selectAll('g');
-
-            // app starts here
-            svg.on('mousedown', (event, d) => mousedown(event, d))
-                .on('mousemove', (event, d) => mousemove(event, d))
-                .on('mouseup', (event, d) => mouseup(event, d));
-
-            d3.select(window)
-                .on('keydown', (event, d) => keydown(event, d))
-                .on('keyup', (event, d) => keyup(event, d));
-
-            restart();
+            render();
         }
-    }, [])
+    }, []);
 
     const resetMouseVars = () => {
         mousedownNode = null;
@@ -150,7 +69,8 @@ function App1({nodes, links}) {
     }
 
     // update graph (called when needed)
-    const restart = () => {
+    const render = () => {
+
         // path (link) group
         path = path.data(links);
 
@@ -175,7 +95,7 @@ function App1({nodes, links}) {
                 mousedownLink = d;
                 selectedLink = (mousedownLink === selectedLink) ? null : mousedownLink;
                 selectedNode = null;
-                restart();
+                render();
             })
             .merge(path);
 
@@ -227,7 +147,7 @@ function App1({nodes, links}) {
                     .classed('hidden', false)
                     .attr('d', `M${mousedownNode.x},${mousedownNode.y}L${mousedownNode.x},${mousedownNode.y}`);
 
-                restart();
+                render();
             })
             .on('mouseup', (event, d) => {
                 if (!mousedownNode) return;
@@ -257,13 +177,13 @@ function App1({nodes, links}) {
                 if (link) {
                     link[isRight ? 'right' : 'left'] = true;
                 } else {
-                    links.push({ source, target, left: !isRight, right: isRight });
+                    links.push({source, target, left: !isRight, right: isRight});
                 }
 
                 // select new link
                 selectedLink = link;
                 selectedNode = null;
-                restart();
+                render();
             });
 
         // show node IDs
@@ -280,6 +200,8 @@ function App1({nodes, links}) {
             .nodes(nodes)
             .force('link').links(links);
 
+        setAnimatedNodes(nodes);
+
         force.alphaTarget(0.3).restart();
     }
 
@@ -293,10 +215,10 @@ function App1({nodes, links}) {
 
         // insert new node at point
         const point = d3.pointer(event);
-        const node = { id: ++lastNodeId, reflexive: false, x: point[0], y: point[1] };
+        const node = {id: ++lastNodeId, reflexive: false, x: point[0], y: point[1]};
         nodes.push(node);
 
-        restart();
+        render();
     }
 
     const mousemove = (event, d) => {
@@ -346,7 +268,7 @@ function App1({nodes, links}) {
                 }
                 selectedLink = null;
                 selectedNode = null;
-                restart();
+                render();
                 break;
             case 66: // B
                 if (selectedLink) {
@@ -354,7 +276,7 @@ function App1({nodes, links}) {
                     selectedLink.left = true;
                     selectedLink.right = true;
                 }
-                restart();
+                render();
                 break;
             case 76: // L
                 if (selectedLink) {
@@ -362,7 +284,7 @@ function App1({nodes, links}) {
                     selectedLink.left = true;
                     selectedLink.right = false;
                 }
-                restart();
+                render();
                 break;
             case 82: // R
                 if (selectedNode) {
@@ -373,7 +295,7 @@ function App1({nodes, links}) {
                     selectedLink.left = false;
                     selectedLink.right = true;
                 }
-                restart();
+                render();
                 break;
         }
     }
@@ -396,8 +318,98 @@ function App1({nodes, links}) {
         }
     }
 
+    const initChart = () => {
+        svg = d3.select(svgRef.current).on('contextmenu', (event, d) => {
+            event.preventDefault();
+        })
+
+        // set up initial nodes and links
+        //  - nodes are known by 'id', not by index in array.
+        //  - reflexive edges are indicated on the node (as a bold black circle).
+        //  - links are always source < target; edge directions are set by 'left' and 'right'.
+
+        lastNodeId = 2;
+
+        // init D3 force layout
+        force = d3.forceSimulation()
+            .force('link', d3.forceLink().id((d) => d.id).distance(200))
+            .force('charge', d3.forceManyBody().strength(-400))
+            .force('x', d3.forceX(width / 2))
+            .force('y', d3.forceY(height / 2))
+            //.force('center', d3.forceCenter(width / 2, height / 2))
+            .force("gravity", d3.forceManyBody(50))
+            .on('tick', () => tick());
+
+        // init D3 drag support
+        drag = d3.drag()
+            // Mac Firefox doesn't distinguish between left/right click when Ctrl is held...
+            .filter((event, d) => event.button === 0 || event.button === 2)
+            .on('start', (event, d) => {
+                if (!event.active) force.alphaTarget(0.3).restart();
+
+                d.fx = d.x;
+                d.fy = d.y;
+            })
+            .on('drag', (event, d) => {
+                d.fx = event.x;
+                d.fy = event.y;
+            })
+            .on('end', (event, d) => {
+                if (!event.active) force.alphaTarget(0);
+
+                d.fx = null;
+                d.fy = null;
+            });
+
+        // define arrow markers for graph links
+        svg.append('svg:defs').append('svg:marker')
+            .attr('id', 'end-arrow')
+            .attr('viewBox', '0 -5 10 10')
+            .attr('refX', 6)
+            .attr('markerWidth', 3)
+            .attr('markerHeight', 3)
+            .attr('orient', 'auto')
+            .append('svg:path')
+            .attr('d', 'M0,-5L10,0L0,5')
+            .attr('fill', '#000');
+
+        svg.append('svg:defs').append('svg:marker')
+            .attr('id', 'start-arrow')
+            .attr('viewBox', '0 -5 10 10')
+            .attr('refX', 4)
+            .attr('markerWidth', 3)
+            .attr('markerHeight', 3)
+            .attr('orient', 'auto')
+            .append('svg:path')
+            .attr('d', 'M10,-5L0,0L10,5')
+            .attr('fill', '#000');
+
+        // line displayed when dragging new nodes
+        dragLine = svg.select('.dragline');
+
+        // handles to link and node element groups
+        path = svg.select('.links').selectAll('path')
+        circle = svg.select('.nodes').selectAll('g');
+
+        // app starts here
+        svg.on('mousedown', (event, d) => mousedown(event, d))
+            .on('mousemove', (event, d) => mousemove(event, d))
+            .on('mouseup', (event, d) => mouseup(event, d));
+
+        d3.select(window)
+            .on('keydown', (event, d) => keydown(event, d))
+            .on('keyup', (event, d) => keyup(event, d));
+    }
+
+    console.log(animatedNodes)
+
     return (
-        <div ref={svgRef}> </div>
+        // <div ref={svgRef}> </div>
+        <svg width={width} height={height} ref={svgRef}>
+            <path className="link dragline hidden" d="M0,0L0,0"/>
+            <g className="nodes"/>
+            <g className="links"/>
+        </svg>
     )
 }
 

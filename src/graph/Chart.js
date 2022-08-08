@@ -9,8 +9,8 @@ class Chart {
 
     static lastNodeId = 0;
 
-    static width = window.innerWidth - 50;
-    static height = window.innerHeight - 50;
+    static width = window.innerWidth - 150;
+    static height = window.innerHeight - 110;
 
     static colors = d3.scaleOrdinal(d3.schemeCategory10);
     static selectedNode = null;

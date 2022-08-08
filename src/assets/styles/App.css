@@ -47,9 +47,50 @@
 
 
 
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  width: 100%;
+}
 
+#graph {
+  -webkit-align-items: center;
+  align-items: center;
+  background-color: #f1f3f4;
+  display: flex;
+  justify-content: start;
+  text-align: center;
+  height: calc(100% - 110px);
+  padding: 90px 0 20px 0;
+  z-index: 1;
+  position: relative;
+}
 
+.graph-content {
+  position: relative;
+  z-index: 0;
+  height: 100%;
+  width: 100%;
+}
 
+.track {
+  overflow: hidden;
+  font-size: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.frame {
+  width: 100%;
+  height: 100%;
+  visibility: visible;
+  top: 0;
+  overflow: hidden;
+  direction: ltr;
+}
 
 svg {
   background-color: #FFF;
@@ -59,6 +100,7 @@ svg {
   -ms-user-select: none;
   -o-user-select: none;
   user-select: none;
+  border: 2px solid #dadce0;
 }
 
 svg:not(.active):not(.ctrl) {

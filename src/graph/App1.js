@@ -1,5 +1,4 @@
-import React, {Component, useEffect, useRef, useState} from 'react';
-import * as d3 from "d3";
+import React from 'react';
 import '../assets/styles/App.css';
 import Graph from "./Graph";
 import { useSelector } from 'react-redux';
@@ -10,7 +9,13 @@ function App() {
 
     return (
          <div id="graph">
-            <Graph nodes={nodes} links={[]} />
+             <div className="graph-content">
+                 <div className="track">
+                     <div className="frame">
+                         <Graph nodes={nodes} links={[]} />
+                     </div>
+                 </div>
+             </div>
          </div>
     )
 }

@@ -6,3 +6,8 @@ export const getNodes = createSelector(
     getGraph,
     (items) => items.nodes,
 );
+
+export const getLinks = createSelector(
+    getGraph,
+    (items) => items.links,
+);

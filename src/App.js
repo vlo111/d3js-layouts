@@ -1,6 +1,6 @@
 import React, {Component, useEffect, useRef, useState} from 'react';
 import * as d3 from "d3";
-import './assets/styles/App.css';
+import './assets/styles/App.scss';
 
 function App1({nodes, links}) {
 

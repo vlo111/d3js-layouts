@@ -34,6 +34,10 @@ function App() {
         Chart.autoScale();
     }
 
+    const chargeCyclic = () => {
+        Chart.chargeCyclic();
+    }
+
     return (
         <div>
             <div className="header">
@@ -55,6 +59,12 @@ function App() {
                         <div onClick={clearFrame} className="clear-frame-block">
                             <div className="clear-frame">
                                 Clear frame
+                            </div>
+                        </div>
+
+                        <div onClick={chargeCyclic} className="clear-frame-block">
+                            <div className="clear-frame">
+                                Charge Cyclic
                             </div>
                         </div>
                     </div>

@@ -349,6 +349,29 @@ class Chart {
         }
     }
 
+    static chargeCyclic = () => {
+        if (this.force) {
+            this.force.force("charge", d3.forceCollide().radius(10))
+                .force("r", d3.forceRadial(function(d) {
+                    switch (d.color) {
+                        case NODE_COLOR.Black:
+                            return 1;
+                        case NODE_COLOR.Red:
+                            return 300;
+                        case NODE_COLOR.Blue:
+                            return 600;
+                        case NODE_COLOR.Teal:
+                            return 900;
+                        case NODE_COLOR.Cornflowerblue:
+                            return 1200;
+                        default:
+                            return 1500;
+                    }
+                }))
+            this.draw();
+        }
+    }
+
     static handleZoom = (ev) => {
         if (this.activeButton === 'create-label' || ev.sourceEvent?.shiftKey) {
             return;

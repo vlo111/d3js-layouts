@@ -13,7 +13,7 @@ function Toolbar() {
 
     const [colorOptions, setColorOptions] = useState(false);
 
-    const [activeColor, setActiveColor] = useState(NODE_COLOR.Black);
+    const [activeColor, setActiveColor] = useState(NODE_COLOR.Yellow);
 
     const activeColorStyle = {backgroundColor: activeColor};
 
@@ -61,23 +61,23 @@ function Toolbar() {
                     <div className="color-options">
                         <table className="colors-table" cellPadding="0" cellSpacing="0" role="grid">
                             <tr role="row">
-                                <td className={`${activeColor === NODE_COLOR.Black ? 'active-color' : ''}`}
-                                    onClick={() => setActiveColor(NODE_COLOR.Black)}>
-                                    <div className="color-style" style={{backgroundColor: NODE_COLOR.Black}}/>
+                                <td className={`${activeColor === NODE_COLOR.Yellow ? 'active-color' : ''}`}
+                                    onClick={() => setActiveColor(NODE_COLOR.Yellow)}>
+                                    <div className="color-style" style={{backgroundColor: NODE_COLOR.Yellow}}/>
                                 </td>
                                 <td className={`${activeColor === NODE_COLOR.Red ? 'active-color' : ''}`}
                                     onClick={() => setActiveColor(NODE_COLOR.Red)}>
                                     <div className="color-style" style={{backgroundColor: NODE_COLOR.Red}}/>
                                 </td>
-                                <td className={`${activeColor === NODE_COLOR.Cornflowerblue ? 'active-color' : ''}`}
-                                    onClick={() => setActiveColor(NODE_COLOR.Cornflowerblue)}>
-                                    <div className="color-style" style={{backgroundColor: NODE_COLOR.Cornflowerblue}}/>
-                                </td>
-                            </tr>
-                            <tr role="row">
                                 <td className={`${activeColor === NODE_COLOR.Blue ? 'active-color' : ''}`}
                                     onClick={() => setActiveColor(NODE_COLOR.Blue)}>
                                     <div className="color-style" style={{backgroundColor: NODE_COLOR.Blue}}/>
+                                </td>
+                            </tr>
+                            <tr role="row">
+                                <td className={`${activeColor === NODE_COLOR.Purple ? 'active-color' : ''}`}
+                                    onClick={() => setActiveColor(NODE_COLOR.Purple)}>
+                                    <div className="color-style" style={{backgroundColor: NODE_COLOR.Purple}}/>
                                 </td>
                                 <td className={`${activeColor === NODE_COLOR.Teal ? 'active-color' : ''}`}
                                     onClick={() => setActiveColor(NODE_COLOR.Teal)}>

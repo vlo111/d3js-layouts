@@ -1,8 +1,8 @@
 export const NODE_COLOR = {
-    Black: '#3c4043',
+    Yellow: '#F7EC09',
     Red: '#d9453c',
-    Cornflowerblue: 'cornflowerblue',
-    Blue: '#19acc0',
+    Blue: '#0096FF',
+    Purple: '#A66CFF',
     Teal: 'teal',
     Rainbow: `linear-gradient(180deg,
                 rgba(255, 0, 0, 1) 0%,

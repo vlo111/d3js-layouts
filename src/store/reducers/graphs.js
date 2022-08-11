@@ -2,6 +2,7 @@ import {
     CREATE_NODE, CREATE_LINK, CLEAR_DATA
 } from '../actions/graphs';
 import * as d3 from "d3";
+import {NODE_COLOR} from "../../data/node";
 
 const initialState = {
     // links: [
@@ -15,7 +16,12 @@ const initialState = {
     //     d3.range(1).map((i) => { return { id: `Name d${i}`, type: "d", reflexive: true}; })
     // ),
     links: [],
-    nodes: []
+    nodes: [].concat(
+        d3.range(10).map((i) => { return {id: `a${i}`, type: "a", color: NODE_COLOR.Red}; }),
+        d3.range(20).map((i) => { return {id: `b${i}`, type: "b", color: NODE_COLOR.Teal}; }),
+        d3.range(30).map((i) => { return {id: `c${i}`, type: "c", color: NODE_COLOR.Purple}; }),
+        d3.range(1).map((i) => { return { id: `d${i}`, type: "d", color: NODE_COLOR.Yellow}; })
+    )
 };
 
 export default function reducer(state = initialState, action) {

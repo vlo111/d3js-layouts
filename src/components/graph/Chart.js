@@ -21,7 +21,7 @@ class Chart {
     static selectedLink = null;
     static selectedNode = null;
 
-    static activeColor = NODE_COLOR.Black;
+    static activeColor = NODE_COLOR.Yellow;
     static activeTool = null;
 
     static resetMouseFields = () => {
@@ -351,18 +351,24 @@ class Chart {
 
     static chargeCyclic = () => {
         if (this.force) {
-            this.force.force("charge", d3.forceCollide().radius(10))
+            this.force.velocityDecay(0.1)
+                // .force("charge", d3.forceManyBody().strength(-1000))
+                // .force("charge", d3.forceCollide().radius(1))
+                .force('collide', d3.forceCollide().radius(20))
+                .force('x', null)
+                .force('y', null)
+                // .force('center', d3.forceCenter(this.width / 2, this.height / 2))
                 .force("r", d3.forceRadial(function(d) {
                     switch (d.color) {
-                        case NODE_COLOR.Black:
+                        case NODE_COLOR.Yellow:
                             return 1;
                         case NODE_COLOR.Red:
                             return 300;
-                        case NODE_COLOR.Blue:
+                        case NODE_COLOR.Purple:
                             return 600;
                         case NODE_COLOR.Teal:
                             return 900;
-                        case NODE_COLOR.Cornflowerblue:
+                        case NODE_COLOR.Blue:
                             return 1200;
                         default:
                             return 1500;
@@ -428,7 +434,6 @@ class Chart {
     }
 
     static autoScale() {
-        debugger
         const {
             width, height, min,
         } = Utils.getDimensions(this.nodesData, false);

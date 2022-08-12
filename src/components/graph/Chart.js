@@ -352,12 +352,9 @@ class Chart {
     static chargeCyclic = () => {
         if (this.force) {
             this.force.velocityDecay(0.1)
-                // .force("charge", d3.forceManyBody().strength(-1000))
-                // .force("charge", d3.forceCollide().radius(1))
                 .force('collide', d3.forceCollide().radius(20))
                 .force('x', null)
                 .force('y', null)
-                // .force('center', d3.forceCenter(this.width / 2, this.height / 2))
                 .force("r", d3.forceRadial(function(d) {
                     switch (d.color) {
                         case NODE_COLOR.Yellow:
@@ -374,6 +371,53 @@ class Chart {
                             return 1500;
                     }
                 }))
+            this.draw();
+        }
+    }
+
+    static cancelChargeCyclic = () => {
+        if (this.force) {
+            this.force.velocityDecay(0.5)
+                .force('collide', d3.forceCollide().radius(20))
+                .force('x', d3.forceX(this.width / 2))
+                .force('y', d3.forceY(this.height / 2))
+                .force("r", null)
+            this.draw();
+        }
+    }
+
+    static clusteringCharge = () => {
+        if (this.force) {
+            this.force.velocityDecay(0.5)
+                .force('collide', d3.forceCollide().radius(20))
+                .force('x', d3.forceX().x(function(d) {
+                    switch (d.color) {
+                        case NODE_COLOR.Yellow:
+                            return 1;
+                        case NODE_COLOR.Red:
+                            return 300;
+                        case NODE_COLOR.Purple:
+                            return 600;
+                        case NODE_COLOR.Teal:
+                            return 900;
+                        case NODE_COLOR.Blue:
+                            return 1200;
+                        default:
+                            return 1500;
+                    }
+                }))
+                .force('collision', d3.forceCollide().radius(function(d) {
+                    return d.radius;
+                }))
+
+            this.draw();
+        }
+    }
+
+    static solidCollide = () => {
+        if (this.force) {
+            this.force.force('collide',d3.forceCollide().radius(60).iterations(20))
+
             this.draw();
         }
     }

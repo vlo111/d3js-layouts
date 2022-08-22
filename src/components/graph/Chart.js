@@ -247,7 +247,7 @@ class Chart {
         g.append('svg:circle')
             .attr('class', 'node')
             .attr('r', 40)
-            .style('fill', (d) => (d === this.selectedNode) ? d3.rgb(d.color).brighter().toString() : d.color)
+            .style('fill', (d) => (d === this.selectedNode) ? d3.rgb(d.color).brighter().toString() : d3.rgb(d.color).brighter().toString())
             .style('stroke', (d) => d3.rgb(d.color).darker().toString())
             .style('stroke-opacity', "0.1")
             .style('filter', "drop-shadow(12px 12px 7px rgba(0,0,0,0.5))")
@@ -416,7 +416,7 @@ class Chart {
 
     static solidCollide = () => {
         if (this.force) {
-            this.force.force('collide',d3.forceCollide().radius(60).iterations(20))
+            this.force.force('collide',d3.forceCollide().radius(60).iterations(40))
 
             this.draw();
         }

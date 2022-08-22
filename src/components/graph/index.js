@@ -34,27 +34,10 @@ function App() {
         Chart.autoScale();
     }
 
-    const chargeCyclic = () => {
-        Chart.chargeCyclic();
-    }
-
-    const cancelChargeCyclic = () => {
-        Chart.cancelChargeCyclic();
-    }
-
-    const clusteringCharge = () => {
-        Chart.clusteringCharge();
-    }
-
-    const solidCollide = () => {
-        Chart.solidCollide();
-    }
-
     return (
         <div>
             <div className="header">
                 <div className="caption">
-
                 </div>
                 <div className="footer-tools">
                     <div className="left-bar">
@@ -70,27 +53,27 @@ function App() {
                                 Clear frame
                             </div>
                         </div>
-                        <div onClick={chargeCyclic} className="clear-frame-block">
-                            <div className="clear-frame">
-                                Cyclic Layout
-                            </div>
-                        </div>
-                        <div onClick={cancelChargeCyclic} className="clear-frame-block">
-                            <div className="clear-frame">
-                                Charge default
-                            </div>
-                        </div>
+                        {/*<div onClick={chargeCyclic} className="clear-frame-block">*/}
+                        {/*    <div className="clear-frame">*/}
+                        {/*        Cyclic Layout*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
+                        {/*<div onClick={cancelChargeCyclic} className="clear-frame-block">*/}
+                        {/*    <div className="clear-frame">*/}
+                        {/*        Charge default*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
 
-                        <div onClick={clusteringCharge} className="clear-frame-block">
-                            <div className="clear-frame">
-                                Clustering
-                            </div>
-                        </div>
-                        <div onClick={solidCollide} className="clear-frame-block">
-                            <div className="clear-frame">
-                                Solid Collide
-                            </div>
-                        </div>
+                        {/*<div onClick={clusteringCharge} className="clear-frame-block">*/}
+                        {/*    <div className="clear-frame">*/}
+                        {/*        Clustering*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
+                        {/*<div onClick={solidCollide} className="clear-frame-block">*/}
+                        {/*    <div className="clear-frame">*/}
+                        {/*        Solid Collide*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
                     </div>
                     <div className="settings">
                         <div className="tool-block">
